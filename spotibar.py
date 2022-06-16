@@ -12,6 +12,7 @@ external_stylesheets = [
         "rel": "stylesheet",
     },
 ]
+
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "Spotibar"
 
@@ -26,14 +27,11 @@ fig = px.bar(
     xaxis_title="Artist's name",
     yaxis_title="Popularity",
     title_font_family='Poppins',
-    ).update_yaxes(
-    automargin=True, 
+).update_yaxes(
+    automargin=True,
     ticksuffix=" ",
-    ).update_coloraxes(
+).update_coloraxes(
     showscale=False)
-
-
-
 
 fig.update_layout({
     'plot_bgcolor': 'rgba(0, 0, 0, 0)',
@@ -46,18 +44,14 @@ fig.update_layout({
     'bargap': 0.30,
 })
 
-fig.update_traces(marker=dict(size=0,
-                              line=dict(width=0,
-                                        color='DarkSlateGrey')),
-                  selector=dict(mode='markers'))
-
+fig.update_traces(marker_line_width=0)
 
 df2 = pd.read_csv("topTracks.csv")
 fig2 = px.bar(
     df2, x="popularity", y="name",
     color="popularity", width=500, height=600, color_continuous_scale='peach', title="User's recently most listened tracks:",).update_layout(
     title={'y': 0.9,
-           'x': 0.6,
+           'x': 0.5,
            'xanchor': 'center',
            'yanchor': 'top'},
     xaxis_title="Artist's name", yaxis_title="Popularity", title_font_family='Poppins', ).update_yaxes(automargin=True, ticksuffix=" ").update_coloraxes(showscale=False)
@@ -73,6 +67,8 @@ fig2.update_layout({
     'bargap': 0.30,
 })
 
+fig2.update_traces(marker_line_width=0)
+
 df3 = pd.read_csv("topGenres.csv")
 fig3 = px.bar(
     df3, x="popularity", y="genre",
@@ -80,7 +76,7 @@ fig3 = px.bar(
     color_continuous_scale='tealgrn',
     title="User's recently most listened genres:").update_layout(
     title={'y': 0.9,
-           'x': 0.6,
+           'x': 0.5,
            'xanchor': 'center',
            'yanchor': 'top'},
     title_font_family='Poppins', width=500, height=600).update_coloraxes(showscale=False).update_yaxes(automargin=True, ticksuffix="  ")
@@ -96,16 +92,18 @@ fig3.update_layout({
     'bargap': 0.30,
 })
 
-
+fig3.update_traces(marker_line_width=0)
 
 app.layout = html.Div([
     html.H1('Spotibar: Visualizing Spotify Data', className="header-title"),
     html.H4('This website takes data from spotify\'s own API and displays it in form of horizontal bar charts.',
             className="header-description"),
-    dcc.Graph(className='graph1', figure=fig, style={'display': 'inline-block'}),
-    dcc.Graph(className='graph2', figure=fig2, style={'display': 'inline-block'}),
-    dcc.Graph(className='graph3', figure=fig3, style={'display': 'inline-block'}),
 
+    html.Div([
+        dcc.Graph(className='graph1', figure=fig),
+        dcc.Graph(className='graph2', figure=fig2),
+        dcc.Graph(className='graph3', figure=fig3),
+    ], className="flex-graph")
 ])
 
 
