@@ -15,7 +15,20 @@ external_stylesheets = [
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "Spotibar"
 
-def createGraph(colorway,csv,y,cmin,cmax):
+def get_top_artists():
+    #pedir do backend json do spotipy
+    pass
+def get_top_tracks():
+    #pedir do backend json do spotipy
+    pass
+def get_top_genres():
+    #pedir do backend json do spotipy
+    pass
+
+def create_top_artists_df(results=get_top_artists()):
+    pd.read_json('data/simple.json')
+
+def create_graph(colorway,csv,y,cmin,cmax):
     df = pd.read_csv(csv)
     fig = px.bar(
         df, x="popularity",
@@ -56,9 +69,9 @@ app.layout = html.Div([
             className="header-description"),
 
     html.Div([
-        dcc.Graph(className='graph1', figure=createGraph('sunsetdark',"topArtists.csv",'artists',0,100)),
-        dcc.Graph(className='graph2', figure=createGraph('peach',"topTracks.csv",'tracks',0,100)),
-        dcc.Graph(className='graph3', figure=createGraph('tealgrn',"topGenres.csv",'genres',0,6)),
+        dcc.Graph(className='graph1', figure=create_graph('sunsetdark',"topArtists.csv",'artists',0,100)),
+        dcc.Graph(className='graph2', figure=create_graph('peach',"topTracks.csv",'tracks',0,100)),
+        dcc.Graph(className='graph3', figure=create_graph('tealgrn',"topGenres.csv",'genres',0,6)),
     ], className="flex-graph")
 ])
 

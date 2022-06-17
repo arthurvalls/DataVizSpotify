@@ -4,70 +4,78 @@ import os
 import pandas as pd
 import collections
 from flask import Flask
-import csv
+from flask import Flask, jsonify, request
+from os.path import join, dirname
 from dotenv import load_dotenv
 
-load_dotenv()
+app = Flask(__name__)
 
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
+SPOTIPY_CLIENT_ID = os.environ.get("SPOTIPY_CLIENT_ID")
+SPOTIPY_CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
+SPOTIPY_REDIRECT_URI = os.environ.get("SPOTIPY_REDIRECT_URI")
 scope = "user-top-read"
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))  
 
 
-results = sp.current_user_top_artists(limit=10, offset=0, time_range='short_term')
+def get_top_artists():
+    results = sp.current_user_top_artists(limit=10, offset=0, time_range='short_term')
 
-spotPop = ['artists', 'popularity']
+    unsorted_top_artists = ['artists', 'popularity']
 
-pop = []
-for item in results['items']:
-    pop.append( {'artists': item["name"][:20],'popularity': item["popularity"]} )
-
-
-popsorted = (sorted(pop, key=lambda d: d['popularity'])) 
+    for item in results['items']:
+        unsorted_top_artists.append( {'artists': item["name"][:20],'popularity': item["popularity"]} )
 
 
-with open('topArtists.csv', 'w') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames = spotPop)
-    writer.writeheader()
-    writer.writerows(popsorted)
+    sorted_top_artists = (sorted(unsorted_top_artists, key=lambda d: d['popularity'])) 
+
+    return sorted_top_artists
 
 
-results = sp.current_user_top_artists(limit=36, offset=0, time_range='short_term')
+def get_top_tracks():
+    results = sp.current_user_top_tracks(limit=10, offset=0, time_range='short_term')
 
-top_genres = ['genre']
-
-for item in results['items']:
-    top_genres.extend([x[:20] for x in item['genres']])
-
-c = collections.Counter(top_genres)
-
-sort = dict(reversed((sorted(c.items(), key=lambda x:x[1]))))
-
-top10 = dict(reversed(list(sort.items())[0: 10]))
-
-top10Genres = ['genres', 'popularity']
-genre = []
-for k, v in top10.items():
-    genre.append( {'genres': k,'popularity': v} )
+    unsorted_top_tracks = ['tracks', 'popularity']
+    for item in results['items']:
+        unsorted_top_tracks.append( {'tracks': item["name"][:20],'popularity': item["popularity"]} )
 
 
-with open('topGenres.csv', 'w') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames = top10Genres)
-    writer.writeheader()
-    writer.writerows(genre)
+    sorted_top_tracks = (sorted(unsorted_top_tracks, key=lambda d: d['popularity'])) 
+
+    return sorted_top_tracks
+
+def get_top_genres():
+    
+    results = sp.current_user_top_artists(limit=36, offset=0, time_range='short_term')
+
+    unsorted_top_genres = ['genre']
+
+    for item in results['items']:
+        unsorted_top_genres.extend([x[:20] for x in item['genres']])
+
+    c = collections.Counter(unsorted_top_genres)
+
+    counted_top_genres = dict(reversed((sorted(c.items(), key=lambda x:x[1]))))
+
+    unsorted_counted_top_genres = dict(reversed(list(counted_top_genres.items())[0: 10]))
+
+    sorted_top_genres = ['genres', 'popularity']
+    for k, v in unsorted_counted_top_genres.items():
+        sorted_top_genres.append( {'genres': k,'popularity': v} )
 
 
-results = sp.current_user_top_tracks(limit=10, offset=0, time_range='short_term')
-
-spotPop = ['tracks', 'popularity']
-
-pop = []
-for item in results['items']:
-    pop.append( {'tracks': item["name"][:20],'popularity': item["popularity"]} )
+    return sorted_top_genres
+    
 
 
-popsorted = (sorted(pop, key=lambda d: d['popularity'])) 
+@app.route('/jsons')
+def get_artists():
+  return jsonify(get_top_artists())
 
-with open('topTracks.csv', 'w') as csvfile:
-    writer = csv.DictWriter(csvfile, fieldnames = spotPop)
-    writer.writeheader()
-    writer.writerows(popsorted)
+def get_tracks():
+  return jsonify(get_top_tracks())
+
+def get_genres():
+  return jsonify(get_top_genres())
